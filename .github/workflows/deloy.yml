@@ -24,7 +24,7 @@ jobs:
           mvn clean package
 
       - name: Rename WAR file
-        run: mv pro12/target/*.war project/target/pro12.war
+        run: mv pro12/target/*.war pro12/target/pro12.war
 
       - name: Copy WAR to EC2
         uses: appleboy/scp-action@master
