@@ -1,0 +1,53 @@
+name: Deploy Spring WAR to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Build with Maven
+        run: |
+          cd pro12
+          mvn clean package
+
+      - name: Rename WAR file
+        run: mv pro12/target/*.war project/target/pro12.war
+
+      - name: Copy WAR to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: project/target/*.war
+          target: ~/
+          overwrite: true
+          
+      - name: Restart Tomcat
+        uses:  appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            rm -rf ~/tomcat/webapps/pro12 ~/tomcat/webapps/pro12.war
+            sleep 5
+            mv ~/project/target/*.war ~/tomcat/webapps/
+            ~/tomcat/bin/shutdown.sh || true
+            sleep 5
+            ~/tomcat/bin/startup.sh
+            
+          
