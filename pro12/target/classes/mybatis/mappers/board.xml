@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+	"-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.board">
+	<resultMap type="articleDTO" id="articleResult">
+		<result property="level" column="level" />
+		<result property="articleNo" column="articleNo" />
+		<result property="parentNo" column="parentNo" />
+		<result property="title" column="title" />
+		<result property="content" column="content" />
+		<result property="writeDate" column="writeDate" />
+		<result property="imageFileName" column="imageFileName" />
+		<result property="id" column="id" />
+	</resultMap>
+	<resultMap type="imageDTO" id="imgResult">
+		<result property="imageFileNo" column="imageFileNo" />
+		<result property="imageFileName" column="imageFileName" />
+		<result property="regDate" column="regDate" />
+		<result property="articleNo" column="articleNo" />
+	</resultMap>
+	<select id="selectAllArticleList" 
+		resultMap="articleResult">
+		select level, articleNo, parentNo, title, content,
+		writeDate, imageFileName, id from board 
+		start with parentNo=0
+		connect by prior articleNo=parentNo
+		order siblings by articleNo desc
+	</select>
+	
+	<insert id="insertArticle" parameterType="articleDTO">
+		insert into board(articleNo, parentNo, title, content, id)
+			values(#{articleNo}, #{parentNo}, #{title}, #{content}, #{id})
+	</insert>
+	
+	<select id="selectNewArticleNo" resultType="int">
+		select max(articleNo)+1 from board
+	</select>
+	
+	<select id="selectNewImageFileNo" resultType="int">
+		select nvl(max(imageFileNo), 0) from image
+	</select>
+	
+	<insert id="insertNewImage" 
+						parameterType="java.util.Map">
+		<foreach collection="list" item="item"
+				open="insert all" separator =" "
+					 close="select * from dual">
+			into image(imageFileNo, imageFileName, 
+							articleNo, regDate)
+			values (#{item.imageFileNo}, #{item.imageFileName},
+							#{item.articleNo}, sysdate)			 
+		</foreach>
+	</insert>
+	<select id="selectArticle" resultType="articleDTO"
+		parameterType="int">
+		select * from board where articleNo=#{articleNo }
+	</select>
+	<select id="selectImageFileList" resultMap="imgResult"
+		parameterType="int">
+		select * from image where articleNo=#{articleNo }	
+	</select>
+</mapper>
+
+
+
+
+
+

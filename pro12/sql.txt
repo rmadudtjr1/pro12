@@ -1,0 +1,31 @@
+create table board(
+    articleNo number(10) primary key,
+    parentNo number(10) default 0,
+    title varchar2(500) not null,
+    content varchar2(4000),
+    imageFileName varchar2(30),
+    writeDate date default sysdate not null,
+    id varchar2(10),
+    CONSTRAINT FK_ID FOREIGN key(id) REFERENCES member(id)
+);
+
+insert into board 
+    values(1,0,'테스트','테스트글입니다.',null,sysdate,'hong');
+insert into board 
+    values(2,0,'테스트2','테스트글입니다.2',null,sysdate,'hong');    
+insert into board 
+    values(3,2,'답글','답글테스트글입니다.',null,sysdate,'hong');    
+insert into board 
+    values(5,3,'답글2','답글테스트글입니다.2',null,sysdate,'hong');    
+insert into board 
+    values(4,0,'테스트3','테스트글입니다.3',null,sysdate,'hong');    
+insert into board 
+    values(6,2,'답글3','답글테스트글입니다.3',null,sysdate,'hong');    
+    
+commit;
+
+select level, articleNo, parentNo, title, content, writeDate, 
+    imageFileName, id from board
+    start with parentNo = 0
+    connect by prior articleNo=parentNo
+    order siblings by articleNo desc;
